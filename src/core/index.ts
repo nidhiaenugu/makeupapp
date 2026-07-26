@@ -1,0 +1,10 @@
+export * from './types';
+export * from './catalog';
+export * from './quiz/questions';
+export * from './engine/recommend';
+export * from './engine/routine';
+export * from './engine/conflicts';
+export * from './engine/filters';
+export { scoreProduct } from './engine/score';
+export type { ScoreBreakdown } from './engine/score';
+export * from './engine/weights';

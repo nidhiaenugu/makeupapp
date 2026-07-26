@@ -1,9 +1,4 @@
 /* eslint-disable no-undef */
-// Silence the noisy animation warning that RN emits under the jsdom-ish test env.
-jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper', () => ({}), {
-  virtual: true,
-});
-
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
