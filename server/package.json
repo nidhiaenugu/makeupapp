@@ -1,0 +1,15 @@
+{
+  "name": "glowmatch-ai-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Holds the Anthropic API key so the Glowmatch app never has to.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel deploy --prod"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.115.0"
+  }
+}
