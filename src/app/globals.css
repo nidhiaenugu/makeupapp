@@ -1,0 +1,218 @@
+/*
+ * Design tokens.
+ *
+ * Both themes are defined here and switched by `data-theme` on <html>, which
+ * the theme toggle sets and a small inline script restores before first paint
+ * so there is no flash of the wrong theme.
+ *
+ * Plain CSS on purpose: the whole design system is ~15 custom properties and a
+ * handful of primitives, so a utility framework would be more build surface
+ * than it saves.
+ */
+:root {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+
+  --bg: #fdf9f7;
+  --surface: #ffffff;
+  --surface-2: #f7f0ec;
+  --border: #e8dcd5;
+  --text: #2a2124;
+  --muted: #7a6a70;
+  --accent: #b04a6e;
+  --accent-soft: #f6e4ea;
+  --accent-text: #ffffff;
+  --positive: #2f7d5d;
+  --warning: #9a5b18;
+  --shadow: 0 1px 2px rgba(42, 33, 36, 0.06), 0 8px 24px -12px rgba(42, 33, 36, 0.18);
+}
+
+:root[data-theme='dark'] {
+  --bg: #171315;
+  --surface: #201a1f;
+  --surface-2: #2a2229;
+  --border: #3a2f38;
+  --text: #f3ebef;
+  --muted: #a99aa2;
+  --accent: #e88fae;
+  --accent-soft: #3a2029;
+  --accent-text: #171315;
+  --positive: #7fc9a4;
+  --warning: #e0a463;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #171315;
+    --surface: #201a1f;
+    --surface-2: #2a2229;
+    --border: #3a2f38;
+    --text: #f3ebef;
+    --muted: #a99aa2;
+    --accent: #e88fae;
+    --accent-soft: #3a2029;
+    --accent-text: #171315;
+    --positive: #7fc9a4;
+    --warning: #e0a463;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Never let a wide table or code block push the page sideways. */
+body {
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --- shared primitives ---------------------------------------------------- */
+
+.gm-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+
+.gm-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.gm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.4rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+.gm-btn:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.gm-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.gm-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.gm-btn-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.gm-input {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+/* Wide content scrolls inside its own container, never the page. */
+.gm-scroll-x {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+/* Visually hidden, but still announced — used by the skip link. */
+.gm-skip-link {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.gm-skip-link:focus {
+  position: absolute;
+  left: 0.5rem;
+  top: 0.5rem;
+  z-index: 100;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0.6rem 1rem;
+  clip: auto;
+  overflow: visible;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+}
