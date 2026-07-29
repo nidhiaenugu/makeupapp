@@ -32,7 +32,12 @@ jobs:
       - run: npm run build:standalone
       - run: mv dist/glowmatch.html dist/index.html
 
+      # enablement: true lets this action turn Pages on for the repo the
+      # first time this workflow runs, instead of requiring someone to
+      # click "GitHub Actions" as the source in Settings → Pages first.
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
