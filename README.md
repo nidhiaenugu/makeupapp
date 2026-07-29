@@ -44,8 +44,16 @@ Other commands:
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run validate:catalog` | Semantic checks on the product data |
 | `npm run check` | Typecheck + tests + catalog validation |
+| `npm run build:standalone` | Bundle the whole app into one offline HTML file |
+| `npm run smoke:standalone` | Drive that file in a headless browser |
 
 No database, no API keys, no environment variables. The catalog ships with the repo.
+
+## The single-file build
+
+`npm run build:standalone` produces `dist/glowmatch.html` — the entire app, engine and catalog in one ~184 KB file that runs from `file://` with **no network requests at all**. Useful for phones, offline use, or emailing someone the whole app.
+
+It is not a reimplementation: `src/standalone/app.ts` is a vanilla-DOM front end that imports the *real* engine and catalog, and esbuild bundles them together. The hosted version therefore cannot drift from the source. `npm run smoke:standalone` drives the built file in headless Chromium — full quiz, results, routine, saving, theme persistence — and fails on any console error or network request.
 
 ## Using the API
 
