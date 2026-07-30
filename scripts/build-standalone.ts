@@ -8,12 +8,17 @@
  * Run with `npm run build:standalone`.
  */
 import { build } from 'esbuild';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const outFile = resolve(root, 'dist/glowmatch.html');
+const distDir = resolve(root, 'dist');
+const outFile = resolve(distDir, 'glowmatch.html');
+const iconsDir = resolve(root, 'assets/icons');
+
+const APP_NAME = 'GlowMatch';
+const APP_DESCRIPTION = 'Find makeup, skincare and haircare products that suit you.';
 
 async function bundle(): Promise<string> {
   const result = await build({
@@ -382,12 +387,72 @@ h3 a, h1 a { color: inherit; text-decoration: none; }
 }
 `;
 
+/**
+ * Manifest for "Add to Home Screen" on Android/Chrome. Referenced as a
+ * relative link, so it resolves against wherever index.html is actually
+ * served from — this is what's missing for local file:// use is fine to
+ * lose, since a manifest and an installable app only mean anything once
+ * the page has a real origin.
+ */
+function manifestJson() {
+  return JSON.stringify(
+    {
+      name: `${APP_NAME} — find products that suit you`,
+      short_name: APP_NAME,
+      description: APP_DESCRIPTION,
+      id: '.',
+      start_url: '.',
+      scope: '.',
+      display: 'standalone',
+      orientation: 'portrait',
+      background_color: '#faf7f5',
+      theme_color: '#faf7f5',
+      icons: [
+        { src: 'icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+        { src: 'icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+        { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+        { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      ],
+    },
+    null,
+    2,
+  );
+}
+
+/**
+ * A minimal offline cache. Once someone opens the installed app once, this
+ * lets it keep launching without a network — the same "no network calls"
+ * property the single-file build already has, extended to the hosted PWA.
+ */
+function serviceWorkerJs() {
+  return `const CACHE = 'glowmatch-v1';
+const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)));
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))),
+  );
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+  event.respondWith(
+    caches.match(event.request).then((cached) => cached || fetch(event.request)),
+  );
+});
+`;
+}
+
 async function main() {
-const js = await bundle();
+  const js = await bundle();
 
-const html = `<title>GlowMatch — find products that suit you</title>
-
-<div class="topbar">
+  const body = `<div class="topbar">
   <a class="wordmark" href="#/home">Glow<i>Match</i></a>
   <button class="themebtn" data-theme-toggle aria-label="Switch between light and dark">
     <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
@@ -406,21 +471,64 @@ const html = `<title>GlowMatch — find products that suit you</title>
   Not affiliated with any brand listed. Your answers stay on this device.</p>
 </footer>
 
+<nav class="tabbar" id="tabs" aria-label="Sections"></nav>
+<script>${js}</script>`;
+
+  // A real document, not a bare fragment: without an explicit <head>, there
+  // is nowhere reliable to put the viewport meta tag, which is what was
+  // causing the "zoomed out" layout on iPhone — no viewport tag means Safari
+  // assumes a 980px desktop page and shrinks it to fit the screen.
+  const html = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>${APP_NAME} — find products that suit you</title>
+<meta name="description" content="${APP_DESCRIPTION}">
+
+<meta name="theme-color" content="#faf7f5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16121a" media="(prefers-color-scheme: dark)">
+
+<!-- Add to Home Screen: iOS reads its own meta tags rather than the manifest -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="${APP_NAME}">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+<link rel="manifest" href="manifest.json">
+
 <style>${css}</style>
 <script>
 // Restore the saved theme before first paint so there is no flash.
 try { var t = localStorage.getItem('gm-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
 </script>
-<nav class="tabbar" id="tabs" aria-label="Sections"></nav>
-<script>${js}</script>
+</head>
+<body>
+${body}
+<script>
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
 `;
 
-mkdirSync(dirname(outFile), { recursive: true });
-writeFileSync(outFile, html, 'utf8');
+  mkdirSync(distDir, { recursive: true });
+  writeFileSync(outFile, html, 'utf8');
+  writeFileSync(resolve(distDir, 'manifest.json'), manifestJson(), 'utf8');
+  writeFileSync(resolve(distDir, 'sw.js'), serviceWorkerJs(), 'utf8');
+  for (const name of ['icon-192.png', 'icon-512.png', 'icon-32.png', 'apple-touch-icon.png']) {
+    copyFileSync(resolve(iconsDir, name), resolve(distDir, name));
+  }
 
-const kb = (n: number) => `${Math.round(n / 1024)} KB`;
-console.log(`Wrote ${outFile}`);
-console.log(`  bundle ${kb(js.length)} · page ${kb(html.length)} · self-contained, no network calls`);
+  const kb = (n: number) => `${Math.round(n / 1024)} KB`;
+  console.log(`Wrote ${outFile}`);
+  console.log(`  bundle ${kb(js.length)} · page ${kb(html.length)} · self-contained, no network calls`);
+  console.log('  + manifest.json, sw.js, icon-192.png, icon-512.png, icon-32.png, apple-touch-icon.png');
 }
 
 void main();
