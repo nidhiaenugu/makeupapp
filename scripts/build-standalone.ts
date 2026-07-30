@@ -8,6 +8,7 @@
  * Run with `npm run build:standalone`.
  */
 import { build } from 'esbuild';
+import { createHash } from 'node:crypto';
 import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -423,9 +424,18 @@ function manifestJson() {
  * A minimal offline cache. Once someone opens the installed app once, this
  * lets it keep launching without a network — the same "no network calls"
  * property the single-file build already has, extended to the hosted PWA.
+ *
+ * The cache name is keyed to `buildId` — a hash of the actual app bundle —
+ * rather than a fixed string. A fixed cache name means sw.js is byte-identical
+ * across every deploy, so the browser's update check (a byte comparison of
+ * the registered script against the one on the server) never finds a
+ * difference, never installs a new worker, and the very first cached version
+ * keeps being served forever regardless of how many times the site is
+ * redeployed. Baking the content hash in here is what makes "close the app
+ * and reopen it" actually pick up a new release.
  */
-function serviceWorkerJs() {
-  return `const CACHE = 'glowmatch-v1';
+function serviceWorkerJs(buildId: string) {
+  return `const CACHE = 'glowmatch-${buildId}';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (event) => {
@@ -451,6 +461,11 @@ self.addEventListener('fetch', (event) => {
 
 async function main() {
   const js = await bundle();
+
+  // Ties the service worker's cache to the content it's caching: any change
+  // to the app or its styling produces a different id, which is what makes
+  // the browser notice a new version exists at all. See serviceWorkerJs().
+  const buildId = createHash('sha256').update(js).update(css).digest('hex').slice(0, 10);
 
   const body = `<div class="topbar">
   <a class="wordmark" href="#/home">Glow<i>Match</i></a>
@@ -509,7 +524,25 @@ ${body}
 <script>
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    // Was this load already controlled by a service worker? If so, and
+    // control later transfers to a *different* one — the sign a background
+    // update just installed and took over — reload once so the page in
+    // front of the user actually reflects the new version, instead of the
+    // fix silently sitting in cache until they happen to fully quit the app.
+    // A truly first-ever install also fires "controllerchange" once it
+    // claims the page; that transition is deliberately not reloaded, since
+    // there is nothing newer to catch up to yet.
+    var hadController = !!navigator.serviceWorker.controller;
+    var refreshed = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (!hadController) { hadController = true; return; }
+      if (refreshed) return;
+      refreshed = true;
+      location.reload();
+    });
+    navigator.serviceWorker.register('sw.js').then(function (reg) {
+      reg.update().catch(function () {});
+    }).catch(function () {});
   });
 }
 </script>
@@ -520,7 +553,7 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   mkdirSync(distDir, { recursive: true });
   writeFileSync(outFile, html, 'utf8');
   writeFileSync(resolve(distDir, 'manifest.json'), manifestJson(), 'utf8');
-  writeFileSync(resolve(distDir, 'sw.js'), serviceWorkerJs(), 'utf8');
+  writeFileSync(resolve(distDir, 'sw.js'), serviceWorkerJs(buildId), 'utf8');
   for (const name of ['icon-192.png', 'icon-512.png', 'icon-32.png', 'apple-touch-icon.png']) {
     copyFileSync(resolve(iconsDir, name), resolve(distDir, name));
   }
@@ -528,7 +561,7 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   const kb = (n: number) => `${Math.round(n / 1024)} KB`;
   console.log(`Wrote ${outFile}`);
   console.log(`  bundle ${kb(js.length)} · page ${kb(html.length)} · self-contained, no network calls`);
-  console.log('  + manifest.json, sw.js, icon-192.png, icon-512.png, icon-32.png, apple-touch-icon.png');
+  console.log(`  + manifest.json, sw.js (cache glowmatch-${buildId}), icons`);
 }
 
 void main();
