@@ -896,7 +896,14 @@ const TABS: Array<[string, string]> = [
   ['saved', 'Saved'],
 ];
 
-function render() {
+/**
+ * `scrollToTop` only fires on real navigation — a new route, or a new quiz
+ * question. Every other caller re-renders the current view in place (a pill
+ * tap, a saved-heart toggle, a filter change) and must leave scroll position
+ * alone, or tapping an answer flings the page back to the header on every
+ * single tap — the exact bug this was fixed for.
+ */
+function render(opts: { scrollToTop?: boolean } = {}) {
   const r = route();
   const main = document.getElementById('view')!;
 
@@ -911,7 +918,6 @@ function render() {
   };
 
   main.innerHTML = (views[r.name] ?? viewHome)();
-  main.scrollTop = 0;
 
   document.querySelectorAll<HTMLAnchorElement>('.tab').forEach((tab) => {
     const on = tab.dataset.tab === r.name || (r.name === 'product' && tab.dataset.tab === 'browse');
@@ -920,7 +926,7 @@ function render() {
     else tab.removeAttribute('aria-current');
   });
 
-  window.scrollTo(0, 0);
+  if (opts.scrollToTop) window.scrollTo(0, 0);
 }
 
 // ---------------------------------------------------------------------------
@@ -1003,7 +1009,7 @@ document.addEventListener('click', (event) => {
   if (el.dataset.step) {
     captureInputs();
     quizStep = Math.max(0, Math.min(quizStep + Number(el.dataset.step), steps().length - 1));
-    render();
+    render({ scrollToTop: true });
     return;
   }
 
@@ -1042,10 +1048,8 @@ document.addEventListener('input', (event) => {
   }
   if (el.id === 'q') {
     browseQuery.search = (el as HTMLInputElement).value;
-    const scroll = window.scrollY;
     render();
     (document.getElementById('q') as HTMLInputElement | null)?.focus();
-    window.scrollTo(0, scroll);
   }
 });
 
@@ -1063,7 +1067,7 @@ document.addEventListener('change', (event) => {
 
 window.addEventListener('hashchange', () => {
   if (route().name === 'quiz') quizStep = Math.min(quizStep, steps().length - 1);
-  render();
+  render({ scrollToTop: true });
 });
 
 // ---------------------------------------------------------------------------
@@ -1077,7 +1081,7 @@ function boot() {
   ).join('');
 
   if (!location.hash) location.hash = '#/home';
-  render();
+  render({ scrollToTop: true });
 }
 
 boot();
