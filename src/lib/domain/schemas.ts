@@ -4,10 +4,12 @@ import {
   CATEGORIES,
   CONCERN_IDS,
   COVERAGE_LEVELS,
+  DEFAULT_AUDIENCE,
   DEPTH_MAX,
   DEPTH_MIN,
   EXPERIENCE_LEVELS,
   FINISHES,
+  GENDERS,
   HAIR_TEXTURES,
   HAIR_TYPES,
   POROSITIES,
@@ -26,6 +28,7 @@ const enumOf = <T extends string>(values: readonly T[]) =>
   z.enum(values as unknown as [T, ...T[]]);
 
 export const categorySchema = enumOf(CATEGORIES);
+export const genderSchema = enumOf(GENDERS);
 export const productTypeSchema = enumOf(ALL_PRODUCT_TYPES);
 export const skinTypeSchema = enumOf(SKIN_TYPES);
 export const undertoneSchema = enumOf(UNDERTONES);
@@ -66,6 +69,7 @@ export const productSchema = z
     description: z.string().min(10),
     price: z.number().positive(),
     size: z.string().optional(),
+    audience: z.array(genderSchema).min(1).default(() => [...DEFAULT_AUDIENCE]),
     skinTypes: z.array(skinTypeSchema).default([]),
     hairTypes: z.array(hairTypeSchema).default([]),
     hairTextures: z.array(hairTextureSchema).default([]),
@@ -105,6 +109,7 @@ export const catalogSchema = z.array(productSchema);
 
 export const userProfileSchema = z.object({
   categories: z.array(categorySchema).min(1, 'pick at least one category'),
+  gender: genderSchema.optional(),
   skinType: skinTypeSchema.optional(),
   undertone: undertoneSchema.optional(),
   depth: depthSchema.optional(),

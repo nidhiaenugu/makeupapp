@@ -17,6 +17,7 @@ import {
   DEPTH_MIN,
   EXPERIENCE_LEVELS,
   FINISHES,
+  GENDERS,
   HAIR_TEXTURES,
   HAIR_TYPES,
   POROSITIES,
@@ -207,13 +208,14 @@ function viewHome(): string {
 
 // --- quiz -------------------------------------------------------------------
 
-type StepId = 'categories' | 'skin' | 'hair' | 'concerns' | 'prefs' | 'budget';
+type StepId = 'categories' | 'gender' | 'skin' | 'hair' | 'concerns' | 'prefs' | 'budget';
 
 function steps(): StepId[] {
   const skin = profile.categories.includes('skincare') || profile.categories.includes('makeup');
   const hair = profile.categories.includes('hair');
   return [
     'categories',
+    'gender',
     ...(skin ? (['skin'] as StepId[]) : []),
     ...(hair ? (['hair'] as StepId[]) : []),
     'concerns',
@@ -224,6 +226,10 @@ function steps(): StepId[] {
 
 const STEP_COPY: Record<StepId, [string, string]> = {
   categories: ['What are you shopping for?', 'Pick everything you want recommendations for.'],
+  gender: [
+    'Who are these for?',
+    'Most skincare and hair products work for anyone — this mainly narrows out products marketed to just one audience.',
+  ],
   skin: ['About your skin', 'This decides which formulas we show you — and which we hold back.'],
   hair: ['About your hair', 'Texture and porosity matter more than hair type for picking products.'],
   concerns: [
@@ -310,6 +316,14 @@ function viewQuiz(): string {
       })),
       profile.categories,
       true,
+    );
+  }
+
+  if (step === 'gender') {
+    body = pills(
+      'gender',
+      GENDERS.map((g) => ({ v: g, label: titleCase(g) })),
+      profile.gender ? [profile.gender] : [],
     );
   }
 
@@ -529,7 +543,9 @@ function viewQuiz(): string {
       );
   }
 
-  const blocked = step === 'categories' && profile.categories.length === 0;
+  const blocked =
+    (step === 'categories' && profile.categories.length === 0) ||
+    (step === 'gender' && !profile.gender);
 
   return `
   <div class="progress" role="progressbar" aria-valuenow="${idx + 1}" aria-valuemin="1"
@@ -549,7 +565,11 @@ function viewQuiz(): string {
         ? `<button class="btn" data-finish ${blocked ? 'disabled' : ''}>See my matches</button>`
         : `<button class="btn" data-step="1" ${blocked ? 'disabled' : ''}>Continue</button>`
     }
-    ${blocked ? '<span class="muted small">Pick at least one category.</span>' : ''}
+    ${
+      blocked
+        ? `<span class="muted small">${step === 'categories' ? 'Pick at least one category.' : 'Choose an option to continue.'}</span>`
+        : ''
+    }
     ${idx > 0 && profile.categories.length > 0 ? '<button class="linkish" data-finish>Skip to results</button>' : ''}
   </nav>`;
 }

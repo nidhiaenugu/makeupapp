@@ -12,6 +12,36 @@ describe('hard filters', () => {
     expect(result.reason).toBe('category');
   });
 
+  it('excludes products marketed only to a different gender than the user selected', () => {
+    const result = checkExclusion(
+      product({ audience: ['men'] }),
+      profile({ categories: ['skincare'], gender: 'women' }),
+    );
+    expect(result.excluded).toBe(true);
+    expect(result.reason).toBe('gender');
+  });
+
+  it('keeps unisex products regardless of the selected gender', () => {
+    const result = checkExclusion(
+      product({ audience: ['women', 'men'] }),
+      profile({ categories: ['skincare'], gender: 'men' }),
+    );
+    expect(result.excluded).toBe(false);
+  });
+
+  it('keeps a product marketed to the gender the user selected', () => {
+    const result = checkExclusion(
+      product({ audience: ['men'] }),
+      profile({ categories: ['skincare'], gender: 'men' }),
+    );
+    expect(result.excluded).toBe(false);
+  });
+
+  it('does not filter by gender when the user has not stated one', () => {
+    const result = checkExclusion(product({ audience: ['men'] }), profile({ categories: ['skincare'] }));
+    expect(result.excluded).toBe(false);
+  });
+
   it('excludes products over the hard budget ceiling', () => {
     const result = checkExclusion(
       product({ price: 90 }),
@@ -115,6 +145,10 @@ describe('containsIngredient', () => {
 describe('summariseExclusions', () => {
   it('never mentions category exclusions, which are expected', () => {
     expect(summariseExclusions(['category', 'category'])).toEqual([]);
+  });
+
+  it('never mentions gender exclusions, which are expected', () => {
+    expect(summariseExclusions(['gender', 'gender'])).toEqual([]);
   });
 
   it('summarises and counts the reasons worth surfacing', () => {

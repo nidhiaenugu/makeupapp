@@ -82,6 +82,45 @@ describe('recommend', () => {
     ).toBe(true);
   });
 
+  it('never returns a men\'s-only product when the user selected women', () => {
+    const result = recommend(
+      bundledCatalog,
+      profile({ categories: ['skincare', 'makeup', 'hair'], gender: 'women' }),
+      { limit: 200 },
+    );
+
+    expect(result.recommendations.length).toBeGreaterThan(0);
+    expect(result.recommendations.every((r) => r.product.audience.includes('women'))).toBe(true);
+  });
+
+  it('includes both unisex and men\'s-marketed products when the user selected men', () => {
+    const result = recommend(
+      bundledCatalog,
+      profile({ categories: ['skincare', 'makeup', 'hair'], gender: 'men' }),
+      { limit: 200 },
+    );
+
+    const ids = result.recommendations.map((r) => r.product.id);
+    expect(ids).toContain('kiehls-facial-fuel-moisturizer');
+    // A product with no gender restriction (unisex) should still show up.
+    expect(result.recommendations.some((r) => r.product.audience.length === 2)).toBe(true);
+  });
+
+  it('returns the full unrestricted catalog when no gender is stated', () => {
+    const withGender = recommend(
+      bundledCatalog,
+      profile({ categories: ['skincare', 'makeup', 'hair'], gender: 'women' }),
+      { limit: 500, maxPerType: 0 },
+    );
+    const withoutGender = recommend(
+      bundledCatalog,
+      profile({ categories: ['skincare', 'makeup', 'hair'] }),
+      { limit: 500, maxPerType: 0 },
+    );
+
+    expect(withoutGender.recommendations.length).toBeGreaterThan(withGender.recommendations.length);
+  });
+
   it('diversifies the head of the results by product type', () => {
     const result = recommend(
       bundledCatalog,

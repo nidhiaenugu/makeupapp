@@ -3,6 +3,7 @@ import type {
   Coverage,
   ExperienceLevel,
   Finish,
+  Gender,
   HairTexture,
   HairType,
   Porosity,
@@ -43,6 +44,13 @@ export interface Product {
   /** Approximate full-size RRP in USD. See docs/CATALOG.md on data accuracy. */
   price: number;
   size?: string;
+
+  /**
+   * Who the product is marketed to. Defaults to both — almost nothing in
+   * skincare or haircare is inherently gendered — and is only narrowed when
+   * a brand genuinely formulates and markets a line for one audience.
+   */
+  audience: Gender[];
 
   /** Skin types the formula suits. Empty means "suits all / not applicable". */
   skinTypes: SkinType[];
@@ -96,6 +104,9 @@ export interface ProductWithTier extends Product {
 export interface UserProfile {
   /** Which categories the user wants recommendations for. */
   categories: Category[];
+
+  /** Filters out products marketed to the other audience; unisex products always pass. */
+  gender?: Gender;
 
   // skin
   skinType?: SkinType;

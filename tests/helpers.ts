@@ -19,6 +19,7 @@ export function product(overrides: Partial<Product> = {}): Product {
     type: 'serum',
     description: 'A product that exists only inside the test suite.',
     price: 20,
+    audience: ['women', 'men'],
     skinTypes: [],
     hairTypes: [],
     hairTextures: [],

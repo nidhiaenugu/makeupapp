@@ -51,6 +51,7 @@ Array fields not listed default to `[]`.
 | `description` | ✅ | Min 10 chars. Honest, including drawbacks |
 | `price` | ✅ | Approximate full-size USD RRP |
 | `size` | | Free text, e.g. `"30ml"`, `"12 x 1.1g"` |
+| `audience` | | `["women"]` \| `["men"]` \| `["women","men"]`. **Defaults to both** — see below |
 | `skinTypes` | | **Empty means "suits everyone"**, not "suits nobody" |
 | `hairTypes` `hairTextures` `porosities` `scalpTypes` | | Same convention |
 | `targets` | ✅ for skincare/hair | Concern ids this addresses |
@@ -95,6 +96,10 @@ Its weight in scoring is only 0.05 — enough to break ties between equally good
 ### `skinTypes` and friends — empty means "all"
 
 `"skinTypes": []` on a lipstick means it suits everyone. It does **not** mean it suits nobody. Only list types when the formula genuinely favours some over others.
+
+### `audience` — default to both, narrow only when it's genuinely true
+
+Almost nothing in skincare or haircare is inherently gendered — a cleanser or a shampoo works the same regardless of who's holding it — so `audience` defaults to `["women", "men"]` and most products should just omit the field entirely. Only set it to a single gender when a brand genuinely formulates and markets a line for one audience (a dedicated men's grooming range, for instance). When a user states their gender in the quiz, products whose `audience` doesn't include it are excluded outright; leaving `audience` at its default means the product is never gated out by this filter.
 
 ### `shades`
 

@@ -22,6 +22,7 @@ export const EMPTY_PROFILE: UserProfile = {
 /** Used by the demo link on the landing page so the app is explorable instantly. */
 export const SAMPLE_PROFILE: UserProfile = {
   categories: ['skincare', 'makeup'],
+  gender: 'women',
   skinType: 'combination',
   undertone: 'warm',
   depth: 5,
