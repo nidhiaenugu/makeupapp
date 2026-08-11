@@ -37,7 +37,14 @@ export function checkExclusion(product: Product, profile: UserProfile): Exclusio
     return { excluded: true, reason: 'category', detail: 'Outside the categories you chose' };
   }
 
-  // 2. Budget ceiling is a hard number, not a preference.
+  // 2. Gender — only excludes products explicitly marketed to the other
+  //    audience. Unisex products (the default, and the vast majority of the
+  //    catalog) pass regardless of what the user selected.
+  if (profile.gender && !product.audience.includes(profile.gender)) {
+    return { excluded: true, reason: 'gender', detail: 'Marketed for a different audience' };
+  }
+
+  // 3. Budget ceiling is a hard number, not a preference.
   if (product.price > profile.budget.max) {
     return {
       excluded: true,
@@ -46,7 +53,7 @@ export function checkExclusion(product: Product, profile: UserProfile): Exclusio
     };
   }
 
-  // 3. Non-negotiable preferences.
+  // 4. Non-negotiable preferences.
   const missing = profile.mustHave.filter((pref) => !product.attributes.includes(pref));
   if (missing.length > 0) {
     return {
@@ -56,7 +63,7 @@ export function checkExclusion(product: Product, profile: UserProfile): Exclusio
     };
   }
 
-  // 4. Ingredient exclusions — allergies and personal avoid-lists.
+  // 5. Ingredient exclusions — allergies and personal avoid-lists.
   const hit = profile.avoidIngredients.find((ingredient) => containsIngredient(product, ingredient));
   if (hit) {
     return {
@@ -66,7 +73,7 @@ export function checkExclusion(product: Product, profile: UserProfile): Exclusio
     };
   }
 
-  // 5. Potency gate — do not hand a beginner a level-3 active.
+  // 6. Potency gate — do not hand a beginner a level-3 active.
   if (product.potency > MAX_POTENCY_FOR_EXPERIENCE[profile.experience]) {
     return {
       excluded: true,
@@ -75,7 +82,7 @@ export function checkExclusion(product: Product, profile: UserProfile): Exclusio
     };
   }
 
-  // 6. Sensitive skin: exclude the harshest actives outright. A level-3 active
+  // 7. Sensitive skin: exclude the harshest actives outright. A level-3 active
   //    on reactive skin is how people end up with a damaged barrier.
   if (profile.sensitive && product.potency >= 3) {
     return {
@@ -111,8 +118,9 @@ export function summariseExclusions(reasons: string[]): string[] {
   };
 
   return [...counts.entries()]
-    // "category" is an expected, uninteresting exclusion — never surface it.
-    .filter(([reason]) => reason !== 'category' && reason in messages)
+    // "category" and "gender" are expected, uninteresting exclusions the
+    // user caused deliberately by their own quiz answers — never surface them.
+    .filter(([reason]) => reason !== 'category' && reason !== 'gender' && reason in messages)
     .sort((a, b) => b[1] - a[1])
     .map(([reason, count]) => messages[reason]!(count));
 }

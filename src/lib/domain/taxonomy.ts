@@ -21,6 +21,28 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   hair: 'Hair',
 };
 
+// ---------------------------------------------------------------------------
+// Gender
+// ---------------------------------------------------------------------------
+
+export const GENDERS = ['women', 'men'] as const;
+export type Gender = (typeof GENDERS)[number];
+
+export const GENDER_LABELS: Record<Gender, string> = {
+  women: 'Women',
+  men: 'Men',
+};
+
+/**
+ * Same vocabulary as the user's own gender, reused as the audience a product
+ * is marketed to. Almost nothing in skincare or haircare is inherently
+ * gendered — a cleanser or a shampoo works the same regardless — so a
+ * product's `audience` defaults to both and is only narrowed when a brand
+ * genuinely markets and formulates a line for one audience (a men's grooming
+ * range, for instance). See docs/CATALOG.md.
+ */
+export const DEFAULT_AUDIENCE: readonly Gender[] = GENDERS;
+
 /** Product types, grouped by the category they belong to. */
 export const PRODUCT_TYPES = {
   skincare: [

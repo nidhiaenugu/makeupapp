@@ -6,6 +6,8 @@ import {
   COVERAGE_LEVELS,
   EXPERIENCE_LEVELS,
   FINISHES,
+  GENDERS,
+  GENDER_LABELS,
   HAIR_TEXTURES,
   HAIR_TYPES,
   POROSITIES,
@@ -34,6 +36,7 @@ export async function GET() {
 
   return ok({
     categories: CATEGORIES.map((id) => ({ id, label: CATEGORY_LABELS[id] })),
+    genders: GENDERS.map((id) => ({ id, label: GENDER_LABELS[id] })),
     productTypes: PRODUCT_TYPES,
     concerns: CONCERNS,
     preferences: PREFERENCES,

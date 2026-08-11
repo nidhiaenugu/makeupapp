@@ -24,7 +24,7 @@ All endpoints return JSON and send permissive CORS headers, so browser clients o
 
 ## `GET /api/meta`
 
-Everything needed to build your own quiz UI: the full vocabulary of concerns, preferences, product types and scales, plus the engine's scoring weights and catalog statistics.
+Everything needed to build your own quiz UI: the full vocabulary of concerns, preferences, product types, genders and scales, plus the engine's scoring weights and catalog statistics.
 
 ```bash
 curl http://localhost:3000/api/meta
@@ -87,6 +87,7 @@ Score the catalog against a profile. `POST` rather than `GET` because a profile 
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
 | `categories` | array of category | *required, min 1* | |
+| `gender` | `women` \| `men` | — | Excludes products marketed only to the other audience; unisex products (the default for most of the catalog) always pass |
 | `skinType` | `dry` \| `oily` \| `combination` \| `normal` | — | |
 | `undertone` | `cool` \| `neutral` \| `warm` \| `olive` | — | Shade matching |
 | `depth` | integer 1–10 | — | 1 = fairest, 10 = deepest |

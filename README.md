@@ -19,6 +19,7 @@ Answer a short quiz about your skin, hair, concerns and preferences; GlowMatch s
 ## What it does
 
 - **A quiz that adapts.** Only asks about your undertone if you selected makeup or skincare; only asks about porosity if you selected hair.
+- **Men's and women's products.** Skincare and haircare are treated as gender-neutral by default — a cleanser works the same regardless — and only products a brand genuinely markets to one audience (a dedicated men's grooming line, say) are filtered by the gender you select.
 - **Explainable matches.** Every score decomposes into named factors, and each product card states the reasons it ranked where it did.
 - **Honest trade-offs.** If a product treats your acne but will worsen the dryness you also mentioned, it says so on the card rather than burying it.
 - **Dealbreakers are absolute.** Mark *fragrance-free* as a dealbreaker and failing products are removed from consideration, not quietly ranked lower.
@@ -40,7 +41,7 @@ Other commands:
 | Command | What it does |
 | --- | --- |
 | `npm run build` | Production build |
-| `npm test` | Run the engine test suite (87 tests) |
+| `npm test` | Run the engine test suite (97 tests) |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run validate:catalog` | Semantic checks on the product data |
 | `npm run check` | Typecheck + tests + catalog validation |
@@ -137,7 +138,7 @@ docs/               Architecture, API and catalog documentation
 
 ## About the product data
 
-The bundled catalog is a **curated sample dataset** of 86 real products, hand-assembled to exercise the engine across every concern and category. Attributes reflect publicly documented formulations, but:
+The bundled catalog is a **curated sample dataset** of 104 real products, hand-assembled to exercise the engine across every concern and category. Most skincare and haircare is unisex, as it is in real life; a subset of 18 products across all three categories is marketed specifically to men (Every Man Jack, Baxter of California, American Crew and similar grooming brands), surfaced when you select "Men" in the quiz. Attributes reflect publicly documented formulations, but:
 
 - **Prices are approximate** and change constantly.
 - **Formulations change.** Always read the current ingredient list, especially if you have allergies.

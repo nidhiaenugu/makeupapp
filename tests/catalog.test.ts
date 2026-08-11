@@ -31,6 +31,25 @@ describe('bundled catalog', () => {
     }
   });
 
+  it('defaults every product to both audiences unless explicitly narrowed', () => {
+    for (const item of bundledCatalog) {
+      expect(item.audience.length, `${item.id} has an empty audience`).toBeGreaterThan(0);
+    }
+  });
+
+  it('includes a real set of products marketed to men', () => {
+    const mensProducts = bundledCatalog.filter(
+      (p) => p.audience.length === 1 && p.audience[0] === 'men',
+    );
+    expect(mensProducts.length).toBeGreaterThanOrEqual(15);
+    for (const category of CATEGORIES) {
+      expect(
+        mensProducts.some((p) => p.category === category),
+        `no men's product in ${category}`,
+      ).toBe(true);
+    }
+  });
+
   it('never has a product both targeting and aggravating one concern', () => {
     for (const item of bundledCatalog) {
       const overlap = item.targets.filter((t) => item.aggravates.includes(t));

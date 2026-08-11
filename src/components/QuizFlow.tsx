@@ -10,6 +10,8 @@ import {
   COVERAGE_LEVELS,
   EXPERIENCE_LEVELS,
   FINISHES,
+  GENDERS,
+  GENDER_LABELS,
   HAIR_TEXTURES,
   HAIR_TYPES,
   POROSITIES,
@@ -35,7 +37,7 @@ import { loadProfile, saveProfile } from '@/lib/profile/storage';
  * localStorage on every change, so closing the tab mid-quiz loses nothing.
  */
 
-type StepId = 'categories' | 'skin' | 'hair' | 'concerns' | 'preferences' | 'budget';
+type StepId = 'categories' | 'gender' | 'skin' | 'hair' | 'concerns' | 'preferences' | 'budget';
 
 interface Step {
   id: StepId;
@@ -48,6 +50,11 @@ const ALL_STEPS: Record<StepId, Step> = {
     id: 'categories',
     title: 'What are you shopping for?',
     subtitle: 'Pick everything you want recommendations for. You can change this later.',
+  },
+  gender: {
+    id: 'gender',
+    title: 'Who are these for?',
+    subtitle: 'Most skincare and haircare works for anyone — this mainly narrows out products a brand markets specifically to one audience.',
   },
   skin: {
     id: 'skin',
@@ -100,6 +107,7 @@ export function QuizFlow() {
 
     return [
       ALL_STEPS.categories,
+      ALL_STEPS.gender,
       ...(wantsSkin ? [ALL_STEPS.skin] : []),
       ...(wantsHair ? [ALL_STEPS.hair] : []),
       ALL_STEPS.concerns,
@@ -112,7 +120,9 @@ export function QuizFlow() {
   const safeIndex = Math.min(stepIndex, steps.length - 1);
   const step = steps[safeIndex]!;
   const isLast = safeIndex === steps.length - 1;
-  const canAdvance = step.id !== 'categories' || profile.categories.length > 0;
+  const canAdvance =
+    (step.id !== 'categories' || profile.categories.length > 0) &&
+    (step.id !== 'gender' || profile.gender !== undefined);
 
   function update(patch: Partial<UserProfile>) {
     setProfile((current) => ({ ...current, ...patch }));
@@ -173,6 +183,15 @@ export function QuizFlow() {
             selected={profile.categories}
             onSelect={(value) => toggleIn('categories', value)}
             multiple
+          />
+        )}
+
+        {step.id === 'gender' && (
+          <ChoiceGroup
+            legend="Gender"
+            options={GENDERS.map((id) => ({ value: id, label: GENDER_LABELS[id] }))}
+            selected={profile.gender ? [profile.gender] : []}
+            onSelect={(value) => update({ gender: profile.gender === value ? undefined : value })}
           />
         )}
 
@@ -446,7 +465,9 @@ export function QuizFlow() {
 
         {!canAdvance && (
           <span style={{ color: 'var(--muted)', fontSize: '0.87rem' }}>
-            Pick at least one category to continue.
+            {step.id === 'categories'
+              ? 'Pick at least one category to continue.'
+              : 'Choose an option to continue.'}
           </span>
         )}
 
