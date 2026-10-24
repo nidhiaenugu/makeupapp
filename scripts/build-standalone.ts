@@ -41,8 +41,11 @@ async function bundle(): Promise<string> {
  *
  * Ground is a near-black with a violet bias (lacquer, not neutral black) and a
  * warm off-white with a faint rose bias — neutrals chosen to sit under a
- * carmine accent rather than inherited greys. Semantic sage and amber are kept
- * deliberately separate from the accent so "good" never reads as "brand".
+ * two-tone pink/blue accent rather than inherited greys. Pink (`--accent`)
+ * drives primary interaction — buttons, selected states, focus; blue
+ * (`--accent-2`) is reserved for links and the "Glow" half of the wordmark,
+ * so the two never compete for the same job. Semantic sage and amber are kept
+ * deliberately separate from both so "good" never reads as "brand".
  */
 const css = String.raw`
 :root {
@@ -52,9 +55,10 @@ const css = String.raw`
   --rule: #e7dbd7;
   --ink: #241d21;
   --ink-soft: #7a6a70;
-  --accent: #a8365a;
-  --accent-wash: #fbeaf0;
+  --accent: #c2256b;
+  --accent-wash: #fce4f0;
   --on-accent: #ffffff;
+  --accent-2: #2563eb;
   --good: #3d7d5f;
   --caution: #9a5a1c;
   --lift: 0 1px 2px rgba(36, 29, 33, .05), 0 10px 28px -18px rgba(36, 29, 33, .35);
@@ -75,6 +79,7 @@ const css = String.raw`
     --accent: #f0899f;
     --accent-wash: #35202a;
     --on-accent: #1b1116;
+    --accent-2: #7eb6fb;
     --good: #7cc9a1;
     --caution: #e2a463;
     --lift: 0 1px 2px rgba(0,0,0,.45), 0 10px 28px -18px rgba(0,0,0,.8);
@@ -91,6 +96,7 @@ const css = String.raw`
   --accent: #f0899f;
   --accent-wash: #35202a;
   --on-accent: #1b1116;
+  --accent-2: #7eb6fb;
   --good: #7cc9a1;
   --caution: #e2a463;
   --lift: 0 1px 2px rgba(0,0,0,.45), 0 10px 28px -18px rgba(0,0,0,.8);
@@ -114,7 +120,7 @@ h1 { font-size: clamp(1.75rem, 6vw, 2.4rem); letter-spacing: -.015em; }
 h2 { font-size: 1.2rem; }
 h3 { font-size: 1.05rem; }
 p { margin: 0; }
-a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a { color: var(--accent-2); text-decoration-thickness: 1px; text-underline-offset: 2px; }
 h3 a, h1 a { color: inherit; text-decoration: none; }
 
 .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: .85em; }
@@ -137,6 +143,7 @@ h3 a, h1 a { color: inherit; text-decoration: none; }
   border-bottom: 1px solid var(--rule);
 }
 .wordmark { font-family: var(--display); font-size: 1.15rem; font-weight: 600; letter-spacing: -.02em; color: inherit; text-decoration: none; }
+.wordmark b { color: var(--accent-2); font-weight: inherit; }
 .wordmark i { color: var(--accent); font-style: normal; }
 
 .themebtn {
@@ -468,7 +475,7 @@ async function main() {
   const buildId = createHash('sha256').update(js).update(css).digest('hex').slice(0, 10);
 
   const body = `<div class="topbar">
-  <a class="wordmark" href="#/home">Glow<i>Match</i></a>
+  <a class="wordmark" href="#/home"><b>Glow</b><i>Match</i></a>
   <button class="themebtn" data-theme-toggle aria-label="Switch between light and dark">
     <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
       <circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.6"/>

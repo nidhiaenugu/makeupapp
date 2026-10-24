@@ -73,7 +73,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 letterSpacing: '-0.02em',
               }}
             >
-              Glow<span style={{ color: 'var(--accent)' }}>Match</span>
+              <span style={{ color: 'var(--accent-2)' }}>Glow</span>
+              <span style={{ color: 'var(--accent)' }}>Match</span>
             </Link>
 
             <nav style={{ display: 'flex', gap: '0.35rem', marginLeft: 'auto', flexWrap: 'wrap' }}>
