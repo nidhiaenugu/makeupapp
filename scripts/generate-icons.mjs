@@ -2,7 +2,7 @@
  * One-off icon generator, run manually (not part of the build).
  *
  * Renders the app icon — a ring in the same style as the in-app match-score
- * badge, on the accent gradient — via headless Chromium and rasterises it at
+ * badge, on a pink-to-blue gradient — via headless Chromium and rasterises it at
  * every size the manifest and Apple touch-icon need. Output is committed as
  * static PNGs in assets/icons/ so the build script only ever copies files;
  * generating them at CI time would need a Chromium binary the Pages runner
@@ -35,8 +35,8 @@ function iconHtml(size) {
     <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#c1487a"/>
-          <stop offset="100%" stop-color="#6e1f42"/>
+          <stop offset="0%" stop-color="#c2256b"/>
+          <stop offset="100%" stop-color="#2563eb"/>
         </linearGradient>
       </defs>
       <rect width="${size}" height="${size}" fill="url(#g)"/>
